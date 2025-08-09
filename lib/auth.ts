@@ -22,18 +22,24 @@ export const authOptions: NextAuthOptions = {
         if (!creds) return null
         const { email, password } = loginSchema.parse(creds)
         const db = getDb()
-        const rows = await db.select().from(users).where(eq(users.email, email)).limit(1)
-        const user = rows[0] as {
-          id: string
-          email: string
-          passwordHash: string
-          role: string
-          tenantId: string
-        } | undefined
-        if (!user) return null
-        const ok = bcrypt.compareSync(password, user.passwordHash)
-        if (!ok) return null
-        return { id: user.id, email: user.email, name: user.email, role: user.role, tenantId: user.tenantId }
+        try {
+          const rows = await db.select().from(users).where(eq(users.email, email)).limit(1)
+          const user = rows[0] as {
+            id: string
+            email: string
+            passwordHash: string
+            role: string
+            tenantId: string
+          } | undefined
+          // dev logging removed
+          if (!user) return null
+          const ok = bcrypt.compareSync(password, user.passwordHash)
+          // dev logging removed
+          if (!ok) return null
+          return { id: user.id, email: user.email, name: user.email, role: user.role, tenantId: user.tenantId }
+        } catch (err) {
+          return null
+        }
       },
     }),
   ],
