@@ -2,7 +2,7 @@ import { NextAuthOptions } from 'next-auth'
 import Credentials from 'next-auth/providers/credentials'
 import bcrypt from 'bcryptjs'
 import { getDb } from './db'
-import { users } from '@/drizzle/schema'
+import { users } from '../drizzle/schema'
 import { eq } from 'drizzle-orm'
 import { loginSchema } from './validation'
 

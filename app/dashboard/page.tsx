@@ -1,6 +1,7 @@
 import { getServerSession } from 'next-auth'
 import { redirect } from 'next/navigation'
-import { authOptions } from '@/lib/auth'
+import { authOptions } from '../../lib/auth'
+import FileUpload from '../../components/features/FileUpload'
 
 export default async function DashboardPage() {
   const session = await getServerSession(authOptions)
@@ -25,6 +26,11 @@ export default async function DashboardPage() {
           <div className="rounded-2xl bg-white shadow-sm p-6 text-center">
             <div className="text-xl font-semibold text-gray-900">—</div>
             <div className="text-sm text-gray-500">In QC</div>
+          </div>
+        </section>
+        <section>
+          <div className="mt-4">
+            <FileUpload />
           </div>
         </section>
       </div>

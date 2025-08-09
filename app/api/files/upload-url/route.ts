@@ -1,5 +1,5 @@
 import { NextRequest } from 'next/server'
-import { createPresignedPutUrl } from '@/lib/r2'
+import { createPresignedPutUrl } from '../../../../lib/r2'
 import { z } from 'zod'
 
 const schema = z.object({
@@ -8,6 +8,8 @@ const schema = z.object({
   size: z.number().int().positive(),
   projectId: z.string().uuid().optional(),
 })
+
+export const runtime = 'nodejs'
 
 export async function POST(req: NextRequest) {
   const body = await req.json()
