@@ -31,13 +31,15 @@ export const authOptions: NextAuthOptions = {
             role: string
             tenantId: string
           } | undefined
-          // dev logging removed
+          // TEMP: production-safe debug (no secrets)
+          console.log('[auth] lookup', { env: process.env.NODE_ENV, email, found: Boolean(user) })
           if (!user) return null
           const ok = bcrypt.compareSync(password, user.passwordHash)
-          // dev logging removed
+          console.log('[auth] compare', { ok })
           if (!ok) return null
           return { id: user.id, email: user.email, name: user.email, role: user.role, tenantId: user.tenantId }
         } catch (err) {
+          console.error('[auth] error', err instanceof Error ? err.message : err)
           return null
         }
       },
