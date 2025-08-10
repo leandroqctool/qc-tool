@@ -1,4 +1,4 @@
-## QC Tool — Project Plan (Vercel + Next.js 15 + NextAuth + Neon + R2)
+cvc## QC Tool — Project Plan (Vercel + Next.js 15 + NextAuth + Neon + R2)
 
 This plan guides the greenfield rebuild, starting with a CSS smoke test then iterating toward MVP.
 

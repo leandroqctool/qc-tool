@@ -2,6 +2,7 @@ import { NextAuthOptions } from 'next-auth'
 import Credentials from 'next-auth/providers/credentials'
 import bcrypt from 'bcryptjs'
 import { getDb } from './db'
+import { neon, neonConfig } from '@neondatabase/serverless'
 import { users } from '../drizzle/schema'
 import { eq } from 'drizzle-orm'
 import { loginSchema } from './validation'
@@ -21,25 +22,47 @@ export const authOptions: NextAuthOptions = {
       async authorize(creds) {
         if (!creds) return null
         const { email, password } = loginSchema.parse(creds)
-        const db = getDb()
         try {
-          const rows = await db.select().from(users).where(eq(users.email, email)).limit(1)
-          const user = rows[0] as {
+          // Prefer an unpooled Neon endpoint for this short auth query to avoid pool timeouts in local/dev
+          const authUrl = process.env.DATABASE_URL_UNPOOLED || process.env.DATABASE_URL
+          if (!authUrl) throw new Error('DATABASE_URL not set')
+          neonConfig.fetchTimeout = 30000
+          const sql = neon(authUrl)
+          const rows = await sql<{ id: string; email: string; password_hash: string; role: string; tenant_id: string }[]>`
+            select id, email, password_hash, role, tenant_id from users where email = ${email} limit 1
+          `
+          const user = rows[0] && ({
+            id: rows[0].id,
+            email: rows[0].email,
+            passwordHash: rows[0].password_hash,
+            role: rows[0].role,
+            tenantId: rows[0].tenant_id,
+          }) as {
             id: string
             email: string
             passwordHash: string
             role: string
             tenantId: string
           } | undefined
-          // TEMP: production-safe debug (no secrets)
-          console.log('[auth] lookup', { env: process.env.NODE_ENV, email, found: Boolean(user) })
-          if (!user) return null
+          if (!user) {
+            if (process.env.NODE_ENV !== 'production') {
+              console.error('[auth][authorize] user not found', { email })
+            }
+            return null
+          }
           const ok = bcrypt.compareSync(password, user.passwordHash)
-          console.log('[auth] compare', { ok })
-          if (!ok) return null
+          if (!ok) {
+            if (process.env.NODE_ENV !== 'production') {
+              console.error('[auth][authorize] password mismatch', { email })
+            }
+            return null
+          }
           return { id: user.id, email: user.email, name: user.email, role: user.role, tenantId: user.tenantId }
         } catch (err) {
-          console.error('[auth] error', err instanceof Error ? err.message : err)
+          if (process.env.NODE_ENV !== 'production') {
+            console.error('[auth][authorize] error', err)
+          }
+          // Remove dev fallback that injected zero-tenant to avoid bad tenantId in session
           return null
         }
       },

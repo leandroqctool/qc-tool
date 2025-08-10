@@ -49,8 +49,20 @@ export default function FileUpload() {
               setProgressByFile((prev) => ({ ...prev, [file.name]: pct }))
             }
           })
-          xhr.addEventListener('load', () => {
+          xhr.addEventListener('load', async () => {
             if (xhr.status >= 200 && xhr.status < 300) {
+              try {
+                await fetch('/api/files/confirm', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({
+                    key: fileRecord.id,
+                    originalName: file.name,
+                    contentType: file.type,
+                    size: file.size,
+                  }),
+                })
+              } catch {}
               resolve()
             } else {
               reject(new Error('Upload failed'))
@@ -85,6 +97,35 @@ export default function FileUpload() {
             <input type="file" multiple className="hidden" onChange={onSelectFiles} />
             Choose files
           </label>
+        </div>
+        <div className="mt-3 text-xs text-gray-500">
+          Having CORS issues? Try the alternate endpoint upload:
+          <form
+            className="mt-2 flex items-center gap-2"
+            onSubmit={async (e) => {
+              e.preventDefault()
+              const input = (e.currentTarget.elements.namedItem('direct') as HTMLInputElement) ?? null
+              if (!input || !input.files?.length) return
+              const file = input.files[0]
+              const fd = new FormData()
+              fd.append('file', file)
+              setIsUploading(true)
+              try {
+                const res = await fetch('/api/files/direct-upload', { method: 'POST', body: fd })
+                if (res.ok) {
+                  const data = await res.json()
+                  setUploaded((prev) => [...prev, data.fileRecord])
+                } else {
+                  setErrorsByFile((prev) => ({ ...prev, [file.name]: 'Direct upload failed' }))
+                }
+              } finally {
+                setIsUploading(false)
+              }
+            }}
+          >
+            <input name="direct" type="file" className="text-xs" />
+            <button className="px-3 py-1 rounded bg-[#0D99FF] text-white text-xs">Upload (alt)</button>
+          </form>
         </div>
 
         {isUploading && (

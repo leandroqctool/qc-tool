@@ -1,5 +1,9 @@
 import { NextRequest } from 'next/server'
+import { getServerSession } from 'next-auth'
+import { authOptions } from '../../../../lib/auth'
 import { createPresignedPutUrl } from '../../../../lib/r2'
+import { getDb } from '../../../../lib/db'
+import { files as filesTable } from '../../../../drizzle/schema'
 import { z } from 'zod'
 
 const schema = z.object({
@@ -12,18 +16,29 @@ const schema = z.object({
 export const runtime = 'nodejs'
 
 export async function POST(req: NextRequest) {
-  const body = await req.json()
-  const { filename, contentType } = schema.parse(body)
+  try {
+    const session = await getServerSession(authOptions)
+    if (!session) return Response.json({ error: 'Unauthorized' }, { status: 401 })
+    const body = await req.json()
+    const { filename, contentType } = schema.parse(body)
 
-  const bucket = process.env.R2_BUCKET
-  if (!bucket) return Response.json({ error: 'R2_BUCKET not set' }, { status: 500 })
+    const bucket = process.env.R2_BUCKET
+    if (!bucket) return Response.json({ error: 'R2_BUCKET not set' }, { status: 500 })
 
-  const key = `uploads/${Date.now()}-${filename}`
-  const uploadUrl = await createPresignedPutUrl({ bucket, key, contentType })
-  const publicBase = process.env.R2_PUBLIC_BASE_URL
-  const fileUrl = publicBase ? `${publicBase}/${key}` : key
+    // Use path-style URLs → final path will be /<bucket>/<key>
+    // So the key should NOT include the bucket/prefix
+    const key = `${Date.now()}-${filename}`
+    const uploadUrl = await createPresignedPutUrl({ bucket, key, contentType })
+    const publicBase = process.env.R2_PUBLIC_BASE_URL
+    const fileUrl = publicBase ? `${publicBase}/${key}` : `${bucket}/${key}`
 
-  return Response.json({ uploadUrl, fileRecord: { id: key, originalName: filename, url: fileUrl } })
+  // Persist file metadata
+    // Defer DB write to a separate endpoint to avoid blocking on DB latency
+    return Response.json({ uploadUrl, fileRecord: { id: key, originalName: filename, url: fileUrl } })
+  } catch (err) {
+    console.error('[files][upload-url] error', err)
+    return Response.json({ error: 'Failed to create upload URL' }, { status: 500 })
+  }
 }
 
 
