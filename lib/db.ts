@@ -7,8 +7,9 @@ import dns from 'node:dns'
 
 // Improve stability for serverless/edge-like environments
 neonConfig.fetchConnectionCache = true
-// Cast to any to access property not in types
-;(neonConfig as any).fetchTimeout = 60000 // Increase to 60 seconds
+// Extend types safely to set optional fetchTimeout
+type NeonConfigWithTimeout = typeof neonConfig & { fetchTimeout?: number }
+;(neonConfig as NeonConfigWithTimeout).fetchTimeout = 60000 // Increase to 60 seconds
 
 // Prefer IPv4 DNS results in Node (Node 18+)
 try {

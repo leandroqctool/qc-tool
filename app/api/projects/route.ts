@@ -95,7 +95,7 @@ export async function POST(req: NextRequest) {
       } })
     }
   } catch (err: unknown) {
-    if (err && typeof err === 'object' && 'errors' in (err as any)) {
+    if (typeof err === 'object' && err !== null && 'errors' in (err as Record<string, unknown>)) {
       return Response.json({ error: 'Invalid input' }, { status: 400 })
     }
     console.error('[projects][POST] error', err)
