@@ -23,11 +23,12 @@ export const authOptions: NextAuthOptions = {
           // Prefer an unpooled Neon endpoint for this short auth query to avoid pool timeouts in local/dev
           const authUrl = process.env.DATABASE_URL_UNPOOLED || process.env.DATABASE_URL
           if (!authUrl) throw new Error('DATABASE_URL not set')
-          neonConfig.fetchTimeout = 30000
+          ;(neonConfig as unknown as { fetchTimeout?: number }).fetchTimeout = 30000
           const sql = neon(authUrl)
-          const rows = await sql<{ id: string; email: string; password_hash: string; role: string; tenant_id: string }[]>`
+          type DbRow = { id: string; email: string; password_hash: string; role: string; tenant_id: string }
+          const rows = (await sql`
             select id, email, password_hash, role, tenant_id from users where email = ${email} limit 1
-          `
+          `) as unknown as DbRow[]
           const user = rows[0] && ({
             id: rows[0].id,
             email: rows[0].email,
