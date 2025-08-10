@@ -14,7 +14,7 @@ export async function GET() {
 
     const tryQuery = async (url: string | undefined) => {
       if (!url) throw new Error('DATABASE_URL not set')
-      neonConfig.fetchTimeout = 30000
+      ;(neonConfig as unknown as { fetchTimeout?: number }).fetchTimeout = 30000
       const sql = neon(url)
       const rows = await sql<{
         id: string
