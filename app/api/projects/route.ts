@@ -51,7 +51,7 @@ export async function POST(req: NextRequest) {
       if (!url) throw new Error('DATABASE_URL not set')
       ;(neonConfig as unknown as { fetchTimeout?: number }).fetchTimeout = 30000
       const sql = neon(url)
-      const rows = await sql<{
+      type DbRow = {
         id: string
         name: string
         description: string | null
@@ -59,11 +59,12 @@ export async function POST(req: NextRequest) {
         tenant_id: string
         created_at: string
         updated_at: string
-      }[]>`
+      }
+      const rows = (await sql`
         insert into projects (name, description, tenant_id)
         values (${parsed.name}, ${parsed.description ?? null}, ${tenantId})
         returning id, name, description, status, tenant_id, created_at, updated_at
-      `
+      `) as unknown as DbRow[]
       return rows[0]
     }
 
