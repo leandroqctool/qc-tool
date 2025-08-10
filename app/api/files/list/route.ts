@@ -16,7 +16,7 @@ export async function GET() {
       if (!url) throw new Error('DATABASE_URL not set')
       ;(neonConfig as unknown as { fetchTimeout?: number }).fetchTimeout = 30000
       const sql = neon(url)
-      const rows = await sql<{
+      type DbRow = {
         id: string
         key: string
         original_name: string
@@ -29,12 +29,13 @@ export async function GET() {
         uploaded_by: string | null
         created_at: string
         updated_at: string
-      }[]>`
+      }
+      const rows = (await sql`
         select id, key, original_name, size, mime_type, url, status, project_id, tenant_id, uploaded_by, created_at, updated_at
         from files
         where tenant_id = ${tenantId}
         order by created_at desc
-      `
+      `) as unknown as DbRow[]
       // Map to camelCase expected by UI if needed
       return rows.map(r => ({
         id: r.id,
