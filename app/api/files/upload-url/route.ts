@@ -2,8 +2,7 @@ import { NextRequest } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '../../../../lib/auth'
 import { createPresignedPutUrl } from '../../../../lib/r2'
-import { getDb } from '../../../../lib/db'
-import { files as filesTable } from '../../../../drizzle/schema'
+// (DB save deferred to /api/files/confirm)
 import { z } from 'zod'
 
 const schema = z.object({

@@ -6,11 +6,18 @@ export default async function FilesTable() {
   const cookie = hdrs.get('cookie') || ''
   const proto = process.env.NODE_ENV === 'production' ? 'https' : 'http'
   const url = `${proto}://${host}/api/files/list`
-  let rows: Array<any> = []
+  type FileRow = {
+    id: string
+    originalName: string
+    size: string
+    mimeType: string
+    status: string
+  }
+  let rows: Array<FileRow> = []
   try {
     const res = await fetch(url, { cache: 'no-store', headers: { cookie } })
     if (res.ok) {
-      const data = (await res.json()) as { files: Array<any> }
+      const data = (await res.json()) as { files: Array<FileRow> }
       rows = data.files ?? []
     }
   } catch {

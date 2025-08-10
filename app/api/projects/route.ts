@@ -82,7 +82,7 @@ export async function POST(req: NextRequest) {
         createdAt: row.created_at,
         updatedAt: row.updated_at,
       } })
-    } catch (e) {
+    } catch {
       const row = await tryInsert(preferUnpooled ? pooled : (unpooled || pooled))
       return Response.json({ project: {
         id: row.id,
@@ -94,7 +94,7 @@ export async function POST(req: NextRequest) {
         updatedAt: row.updated_at,
       } })
     }
-  } catch (err) {
+  } catch (err: unknown) {
     if (err && typeof err === 'object' && 'errors' in (err as any)) {
       return Response.json({ error: 'Invalid input' }, { status: 400 })
     }

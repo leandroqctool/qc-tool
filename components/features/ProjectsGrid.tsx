@@ -7,11 +7,17 @@ export default async function ProjectsGrid() {
   const cookie = hdrs.get('cookie') || ''
   const proto = process.env.NODE_ENV === 'production' ? 'https' : 'http'
   const url = `${proto}://${host}/api/projects`
-  let rows: Array<any> = []
+  type ProjectRow = {
+    id: string
+    name: string
+    description: string | null
+    status: string
+  }
+  let rows: Array<ProjectRow> = []
   try {
     const res = await fetch(url, { cache: 'no-store', headers: { cookie } })
     if (res.ok) {
-      const data = (await res.json()) as { projects: Array<any> }
+      const data = (await res.json()) as { projects: Array<ProjectRow> }
       rows = data.projects ?? []
     }
   } catch {

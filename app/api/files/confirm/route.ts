@@ -3,7 +3,6 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '../../../../lib/auth'
 import { z } from 'zod'
 import { getDb } from '../../../../lib/db'
-import { eq } from 'drizzle-orm'
 
 export const runtime = 'nodejs'
 
@@ -24,7 +23,8 @@ export async function POST(req: NextRequest) {
     const { key, originalName, contentType, size, projectId } = schema.parse(body)
 
     const tenantId = (session.user as unknown as { tenantId?: string }).tenantId ?? '00000000-0000-0000-0000-000000000000'
-    const uploadedBy = (session.user as unknown as { id?: string } as any).id ?? null
+    type SessionUserExt = { id?: string }
+    const uploadedBy = (session.user as unknown as SessionUserExt).id ?? null
 
     const publicBase = process.env.R2_PUBLIC_BASE_URL
     const fileUrl = publicBase ? `${publicBase}/${key}` : key

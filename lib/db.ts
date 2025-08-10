@@ -7,41 +7,17 @@ import dns from 'node:dns'
 
 // Improve stability for serverless/edge-like environments
 neonConfig.fetchConnectionCache = true
-// @ts-ignore - fetchTimeout is available but not in types
-neonConfig.fetchTimeout = 60000 // Increase to 60 seconds
+// Cast to any to access property not in types
+;(neonConfig as any).fetchTimeout = 60000 // Increase to 60 seconds
 
 // Prefer IPv4 DNS results in Node (Node 18+)
 try {
-  // @ts-ignore Node types may vary by version
-  dns.setDefaultResultOrder('ipv4first')
-} catch (_) {
+  (dns as unknown as { setDefaultResultOrder?: (order: string) => void }).setDefaultResultOrder?.('ipv4first')
+} catch {
   // ignore if not supported
 }
 
-/**
- * Retry a function with exponential backoff
- */
-async function withRetry<T>(
-  fn: () => Promise<T>,
-  { retries = 3, baseDelay = 200, maxDelay = 2000 } = {}
-): Promise<T> {
-  let lastError: unknown
-  
-  for (let attempt = 0; attempt <= retries; attempt++) {
-    try {
-      return await fn()
-    } catch (err) {
-      lastError = err
-      if (attempt >= retries) break
-      
-      // Calculate delay with exponential backoff and jitter
-      const delay = Math.min(baseDelay * Math.pow(2, attempt) * (0.5 + Math.random()), maxDelay)
-      await new Promise(resolve => setTimeout(resolve, delay))
-    }
-  }
-  
-  throw lastError
-}
+// removed unused withRetry helper
 
 // Define a custom type that includes schema and operators
 type DbWithSchema = NeonHttpDatabase<typeof schema> & {

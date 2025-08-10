@@ -60,7 +60,7 @@ export async function GET() {
     try {
       const files = await tryQuery(preferUnpooled ? (unpooled || pooled) : pooled)
       return Response.json({ files })
-    } catch (e) {
+    } catch {
       // Retry once with the other URL
       const files = await tryQuery(preferUnpooled ? pooled : (unpooled || pooled))
       return Response.json({ files })

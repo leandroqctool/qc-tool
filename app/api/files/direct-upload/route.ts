@@ -40,7 +40,8 @@ export async function POST(req: NextRequest) {
     try {
       const db = getDb()
       const tenantId = (session.user as unknown as { tenantId?: string }).tenantId ?? '00000000-0000-0000-0000-000000000000'
-      const uploadedBy = (session.user as unknown as { id?: string } as any).id ?? null
+      type SessionUserExt = { id?: string }
+      const uploadedBy = (session.user as unknown as SessionUserExt).id ?? null
       await db.insert(filesTable).values({
         key,
         originalName: file.name,

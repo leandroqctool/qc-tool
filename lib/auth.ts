@@ -1,10 +1,7 @@
 import { NextAuthOptions } from 'next-auth'
 import Credentials from 'next-auth/providers/credentials'
 import bcrypt from 'bcryptjs'
-import { getDb } from './db'
 import { neon, neonConfig } from '@neondatabase/serverless'
-import { users } from '../drizzle/schema'
-import { eq } from 'drizzle-orm'
 import { loginSchema } from './validation'
 
 export const authOptions: NextAuthOptions = {
