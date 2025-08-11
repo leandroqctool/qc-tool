@@ -11,7 +11,7 @@ export default async function FileList() {
 
   try {
     const client = getR2Client()
-    const resp = await client.send(new ListObjectsV2Command({ Bucket: bucket, Prefix: 'uploads/' }))
+    const resp = await client.send(new ListObjectsV2Command({ Bucket: bucket }))
     const items: _Object[] = resp.Contents ?? []
     return (
       <div className="rounded-2xl bg-white shadow-sm p-6">

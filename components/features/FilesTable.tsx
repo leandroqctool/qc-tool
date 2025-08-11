@@ -1,4 +1,5 @@
 import { headers } from 'next/headers'
+import DeleteFileButton from './DeleteFileButton'
 
 export default async function FilesTable() {
   const hdrs = await headers()
@@ -12,6 +13,7 @@ export default async function FilesTable() {
     size: string
     mimeType: string
     status: string
+    url: string
   }
   let rows: Array<FileRow> = []
   try {
@@ -39,10 +41,15 @@ export default async function FilesTable() {
           <tbody>
             {rows.map((f) => (
               <tr key={f.id} className="border-b last:border-0">
-                <td className="py-2 pr-4 truncate max-w-[360px]">{f.originalName}</td>
+                <td className="py-2 pr-4 truncate max-w-[360px]">
+                  <a href={f.url} target="_blank" rel="noreferrer" className="text-[#0D99FF] hover:underline" title={f.originalName}>{f.originalName}</a>
+                </td>
                 <td className="py-2 pr-4">{f.size}</td>
                 <td className="py-2 pr-4">{f.mimeType}</td>
-                <td className="py-2 pr-4">{f.status}</td>
+                <td className="py-2 pr-4 flex items-center gap-2">
+                  <span>{f.status}</span>
+                  <DeleteFileButton id={f.id} name={f.originalName} />
+                </td>
               </tr>
             ))}
             {rows.length === 0 && (

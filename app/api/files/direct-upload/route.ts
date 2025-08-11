@@ -5,6 +5,7 @@ import { getR2Client } from '../../../../lib/r2'
 import { PutObjectCommand } from '@aws-sdk/client-s3'
 import { getDb } from '../../../../lib/db'
 import { files as filesTable } from '../../../../drizzle/schema'
+import { jsonError } from '../../../../lib/errors'
 
 export const runtime = 'nodejs'
 
@@ -61,8 +62,7 @@ export async function POST(req: NextRequest) {
     }
     return Response.json({ fileRecord })
   } catch (err) {
-    const message = err instanceof Error ? err.message : 'Upload failed'
-    return Response.json({ error: message }, { status: 500 })
+    return jsonError(err, 'Upload failed')
   }
 }
 

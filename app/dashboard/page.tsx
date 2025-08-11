@@ -2,66 +2,105 @@ import { getServerSession } from 'next-auth'
 import { redirect } from 'next/navigation'
 import { authOptions } from '../../lib/auth'
 import FileUpload from '../../components/features/FileUpload'
-import AppHeader from '../../components/layout/AppHeader'
-import AppSidebar from '../../components/layout/AppSidebar'
+import DashboardLayout from '../../components/layout/DashboardLayout'
 import FileList from '../../components/features/FileList'
 import ProjectsGrid from '../../components/features/ProjectsGrid'
 import CreateProjectDialog from '../../components/features/CreateProjectDialog'
 import FilesTable from '../../components/features/FilesTable'
+import QCReviews from '../../components/features/QCReviews'
+import UsersTable from '../../components/features/UsersTable'
+import NewReviewDialog from '../../components/features/NewReviewDialog'
+import DashboardStats from '../../components/features/DashboardStats'
+import RecentProjects from '../../components/features/RecentProjects'
+import RecentFiles from '../../components/features/RecentFiles'
+import RecentActivity from '../../components/features/RecentActivity'
+import UserPresence from '../../components/features/UserPresence'
+import AIInsights from '../../components/features/AIInsights'
 
 export default async function DashboardPage() {
   const session = await getServerSession(authOptions)
   if (!session) redirect('/login')
 
   return (
-    <main className="min-h-screen bg-[var(--background)] text-[var(--text-primary)]">
-      <AppHeader />
-      <div className="mx-auto max-w-7xl px-4 py-6 grid grid-cols-1 md:grid-cols-[240px_1fr] gap-6">
-        <div className="hidden md:block"><AppSidebar /></div>
-        <div className="space-y-6">
-          <div className="flex items-center justify-between">
-            <h1 className="text-3xl font-semibold">Dashboard</h1>
-            <div className="flex items-center gap-3">
-              <CreateProjectDialog />
-              <div className="text-sm text-[var(--text-secondary)]">Signed in as {session.user?.email}</div>
-            </div>
+    <DashboardLayout>
+      <div className="space-y-6">
+        {/* Header Section */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h1 className="text-2xl sm:text-3xl font-semibold text-[var(--text-primary)]">Dashboard</h1>
+            <p className="text-sm text-[var(--text-secondary)] mt-1">
+              Welcome back, {session.user?.email?.split('@')[0]}
+            </p>
           </div>
-        <section className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <div className="rounded-2xl bg-white shadow-sm p-6 text-center">
-            <div className="text-xl font-semibold text-gray-900">—</div>
-            <div className="text-sm text-gray-500">Projects</div>
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+            <CreateProjectDialog />
+            <NewReviewDialog />
           </div>
-          <div className="rounded-2xl bg-white shadow-sm p-6 text-center">
-            <div className="text-xl font-semibold text-gray-900">—</div>
-            <div className="text-sm text-gray-500">Files</div>
-          </div>
-          <div className="rounded-2xl bg-white shadow-sm p-6 text-center">
-            <div className="text-xl font-semibold text-gray-900">—</div>
-            <div className="text-sm text-gray-500">In QC</div>
-          </div>
-        </section>
-          <section>
-            <div className="mt-4">
-              <FileUpload />
-            </div>
-          </section>
-
-          <section>
-            {/* Server component listing recent files from R2 */}
-            {/* FileList is an async server component and can be rendered directly */}
-            <FileList />
-          </section>
-
-          <section>
-            <ProjectsGrid />
-          </section>
-
-          <section>
-            <FilesTable />
-          </section>
         </div>
+
+        {/* Stats Section */}
+        <DashboardStats />
+
+        {/* Quick Upload Section */}
+        <section className="bg-[var(--surface)] rounded-2xl p-6 shadow-sm">
+          <h2 className="text-lg font-semibold text-[var(--text-primary)] mb-4">Quick Upload</h2>
+          <FileUpload />
+        </section>
+
+        {/* Main Content Grid - Responsive */}
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+          {/* Left Column */}
+          <div className="space-y-6">
+            <section>
+              <RecentProjects />
+            </section>
+            <section>
+              <RecentFiles />
+            </section>
+          </div>
+
+          {/* Right Column */}
+          <div className="space-y-6">
+            <section>
+              <AIInsights />
+            </section>
+            <section>
+              <UserPresence showDetails={true} maxUsers={5} />
+            </section>
+            <section>
+              <RecentActivity />
+            </section>
+            <section className="xl:hidden">
+              {/* Show on mobile/tablet, hidden on xl+ */}
+              <QCReviews />
+            </section>
+          </div>
+        </div>
+
+        {/* Full Width Sections */}
+        <section>
+          <ProjectsGrid />
+        </section>
+
+        <section>
+          <FilesTable />
+        </section>
+
+        <section className="hidden xl:block">
+          {/* Hidden on mobile/tablet, show on xl+ */}
+          <QCReviews />
+        </section>
+
+        <section>
+          <UsersTable />
+        </section>
+
+        {/* Legacy FileList - keeping for backward compatibility */}
+        <section className="hidden">
+          <FileList />
+        </section>
       </div>
-    </main>
+    </DashboardLayout>
   )
 }
 

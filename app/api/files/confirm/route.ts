@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '../../../../lib/auth'
 import { z } from 'zod'
 import { getDb } from '../../../../lib/db'
+import { jsonError } from '../../../../lib/errors'
 
 export const runtime = 'nodejs'
 
@@ -46,8 +47,7 @@ export async function POST(req: NextRequest) {
     return Response.json({ file: result[0] })
   } catch (err) {
     console.error('[files][confirm] error', err)
-    const message = err instanceof Error ? err.message : 'Failed to save file'
-    return Response.json({ error: message }, { status: 500 })
+    return jsonError(err, 'Failed to save file')
   }
 }
 
